@@ -1,0 +1,2 @@
+# Jegymester-webapp
+Rendszerfejlesztés 
