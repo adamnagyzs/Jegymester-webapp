@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Biztonsági hiba{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow border-danger">
+                <div class="card-body p-5">
+                    <i class="bi bi-shield-exclamation text-danger" style="font-size: 4rem;"></i>
+                    <h2 class="mt-3 text-danger">Biztonsági hiba</h2>
+                    <p class="text-muted mt-3">
+                        A kérés biztonsági ellenőrzése sikertelen volt. Ez akkor fordulhat elő, ha:
+                    </p>
+                    <ul class="text-start text-muted">
+                        <li>Az oldal túl sokáig volt nyitva</li>
+                        <li>A böngésző cookie-jai le vannak tiltva</li>
+                        <li>Egy régi űrlapot próbált beküldeni</li>
+                    </ul>
+                    <a href="{% url 'core:home' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-house-door"></i> Vissza a főoldalra
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
