@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Felhasználó szerkesztése - {{ target_user.username }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-person-gear"></i> Felhasználó szerkesztése</h1>
+    <a href="{% url 'core:admin_user_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Vissza a listához
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-person-circle" style="font-size: 4rem; color: #6c757d;"></i>
+                </div>
+                <h4>{{ target_user.username }}</h4>
+                {% if target_user.first_name or target_user.last_name %}
+                    <p class="text-muted">{{ target_user.first_name }} {{ target_user.last_name }}</p>
+                {% endif %}
+                <p>
+                    <i class="bi bi-envelope"></i>
+                    {{ target_user.email|default:"Nincs megadva" }}
+                </p>
+                {% if target_user.phone_number %}
+                <p>
+                    <i class="bi bi-telephone"></i>
+                    {{ target_user.phone_number }}
+                </p>
+                {% endif %}
+                <hr>
+                <small class="text-muted">
+                    Regisztráció: {{ target_user.date_joined|date:"Y.m.d H:i" }}<br>
+                    Utolsó belépés: {{ target_user.last_login|date:"Y.m.d H:i"|default:"Még nem lépett be" }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Jogosultságok módosítása</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label for="role" class="form-label fw-bold">Szerepkör</label>
+                        <select class="form-select form-select-lg" name="role" id="role">
+                            {% for value, label in roles %}
+                                <option value="{{ value }}"
+                                        {% if target_user.role == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            <strong>Felhasználó</strong> — jegyvásárlás, saját jegyek kezelése<br>
+                            <strong>Pénztáros</strong> — jegy eladás, jegy ellenőrzés<br>
+                            <strong>Adminisztrátor</strong> — filmek, vetítések, felhasználók kezelése
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   name="is_active" id="is_active"
+                                   {% if target_user.is_active %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="is_active">
+                                Aktív fiók
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            Inaktív fiókkal a felhasználó nem tud belépni.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-shield-check"></i> Egyedi jogosultságok
+                        </label>
+                        <div class="form-text mb-3">
+                            Ezek a jogosultságok a szerepkörtől <strong>függetlenül</strong> is adhatók.
+                            Például egy sima felhasználónak adhatod a "Filmek kezelése" jogot anélkül,
+                            hogy adminná tennéd.
+                        </div>
+                        
+                        {% for perm in custom_perms %}
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox"
+                                   name="permissions" value="{{ perm.codename }}"
+                                   id="perm_{{ perm.codename }}"
+                                   {% if perm.codename in user_perm_codenames %}checked{% endif %}>
+                            <label class="form-check-label" for="perm_{{ perm.codename }}">
+                                {% if perm.codename == 'manage_movies' %}
+                                    <i class="bi bi-film text-primary"></i>
+                                {% elif perm.codename == 'manage_screenings' %}
+                                    <i class="bi bi-calendar-event text-success"></i>
+                                {% elif perm.codename == 'sell_tickets' %}
+                                    <i class="bi bi-cash-coin text-warning"></i>
+                                {% elif perm.codename == 'verify_tickets' %}
+                                    <i class="bi bi-qr-code-scan text-info"></i>
+                                {% endif %}
+                                {{ perm_labels|default_if_none:"" }}
+                                {% for code, label in perm_labels.items %}
+                                    {% if code == perm.codename %}{{ label }}{% endif %}
+                                {% endfor %}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'core:admin_user_list' %}" class="btn btn-outline-secondary">
+                            Mégse
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-lg"></i> Mentés
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
