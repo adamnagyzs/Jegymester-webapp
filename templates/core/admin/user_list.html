@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Felhasználók kezelése - Cinema{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-people"></i> Felhasználók kezelése</h1>
+    <a href="{% url 'core:admin_dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Vissza
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label for="q" class="form-label">Keresés</label>
+                <input type="text" class="form-control" name="q" id="q"
+                       value="{{ search }}" placeholder="Név, email, felhasználónév...">
+            </div>
+            <div class="col-md-4">
+                <label for="role" class="form-label">Szerepkör</label>
+                <select class="form-select" name="role" id="role">
+                    <option value="">Összes szerepkör</option>
+                    {% for value, label in roles %}
+                        <option value="{{ value }}" {% if role_filter == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Szűrés
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Felhasználónév</th>
+                        <th>E-mail</th>
+                        <th>Szerepkör</th>
+                        <th>Státusz</th>
+                        <th>Regisztráció</th>
+                        <th class="text-end">Művelet</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>
+                            <strong>{{ u.username }}</strong>
+                            {% if u.first_name or u.last_name %}
+                                <br><small class="text-muted">{{ u.first_name }} {{ u.last_name }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.email|default:"-" }}</td>
+                        <td>
+                            {% if u.role == 'admin' %}
+                                <span class="badge bg-danger">Adminisztrátor</span>
+                            {% elif u.role == 'cashier' %}
+                                <span class="badge bg-warning text-dark">Pénztáros</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Felhasználó</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge bg-success">Aktív</span>
+                            {% else %}
+                                <span class="badge bg-dark">Inaktív</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.date_joined|date:"Y.m.d H:i" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'core:admin_user_edit' u.pk %}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Szerkesztés
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            Nincs találat.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer text-muted">
+        Összesen {{ users|length }} felhasználó
+    </div>
+</div>
+{% endblock %}
