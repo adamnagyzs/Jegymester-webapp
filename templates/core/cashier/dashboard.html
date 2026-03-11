@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Pénztár - Cinema{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-cash-stack"></i> Pénztár</h1>
+
+<div class="row">
+    {% if user.can_verify_tickets %}
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-qr-code-scan"></i> Jegy ellenőrzése</h5>
+            </div>
+            <div class="card-body">
+                <form id="verifyForm" onsubmit="event.preventDefault(); var code = document.getElementById('ticketCodeInput').value.trim(); if(code) window.location.href='{% url 'core:cashier_dashboard' %}'.replace(/cashier\/$/, 'cashier/verify/' + encodeURIComponent(code) + '/');">
+                    <div class="input-group">
+                        <input type="text" id="ticketCodeInput" class="form-control" 
+                               placeholder="Jegykód beírása..." required>
+                        <button type="submit" class="btn btn-primary">Ellenőrzés</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if user.can_sell_tickets %}
+<h2 class="h4 mb-3">Mai vetítések</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Film</th>
+                <th>Időpont</th>
+                <th>Terem</th>
+                <th>Szabad helyek</th>
+                <th>Műveletek</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for screening in screenings %}
+            <tr>
+                <td>{{ screening.movie.title }}</td>
+                <td>{{ screening.start_time|date:"H:i" }}</td>
+                <td>{{ screening.hall.name }}</td>
+                <td>{{ screening.available_seats }} / {{ screening.hall.capacity }}</td>
+                <td>
+                    <a href="{% url 'core:cashier_sell_ticket' screening.pk %}" class="btn btn-sm btn-success">
+                        <i class="bi bi-ticket"></i> Jegy eladása
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-muted">Ma nincs vetítés.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

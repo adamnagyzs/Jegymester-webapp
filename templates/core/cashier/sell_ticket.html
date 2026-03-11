@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load cinema_tags l10n %}
+
+{% block title %}Jegy eladása - Cinema{% endblock %}
+
+{% block extra_css %}
+<style>
+    .seat-legend { display: inline-flex; align-items: center; margin: 0 10px; }
+    .seat-legend .seat { cursor: default; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-ticket"></i> Jegy eladása</h1>
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">{{ screening.movie.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p><i class="bi bi-calendar"></i> <strong>Időpont:</strong> {{ screening.start_time|date:"Y.m.d H:i" }}</p>
+                <p><i class="bi bi-building"></i> <strong>Terem:</strong> {{ screening.hall.name }}</p>
+                <p><i class="bi bi-cash"></i> <strong>Jegyár:</strong> {{ screening.ticket_price }} Ft / fő</p>
+                <p><i class="bi bi-people"></i> <strong>Szabad helyek:</strong> {{ screening.available_seats }}</p>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="selection-card" style="display:none;">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-cart"></i> Kiválasztott helyek</h5>
+            </div>
+            <div class="card-body">
+                <ul id="selected-list" class="list-group list-group-flush mb-3"></ul>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Összesen:</span>
+                    <span id="total-display" class="fw-bold text-success" style="font-size:1.3rem;">0 Ft</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Székválasztás <small class="opacity-75">(kattints több székre)</small></h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 text-center">
+                    <div class="bg-dark text-white py-2 mb-3 rounded">VÁSZON</div>
+                    
+                    <div id="seat-map">
+                        {% for row_num in screening.hall.rows|to_range %}
+                            <div class="d-flex justify-content-center align-items-center mb-1">
+                                <span class="me-2 text-muted fw-bold" style="width: 25px; font-size: 0.8rem;">{{ row_num }}</span>
+                                {% for seat_num in screening.hall.seats_per_row|to_range %}
+                                    <div class="seat available" 
+                                        data-row="{{ row_num }}" 
+                                        data-seat="{{ seat_num }}"
+                                        title="Sor {{ row_num }}, Szék {{ seat_num }}">
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <span class="seat-legend"><span class="seat available"></span>&nbsp;Szabad</span>
+                        <span class="seat-legend"><span class="seat sold"></span>&nbsp;Foglalt</span>
+                        <span class="seat-legend"><span class="seat selected"></span>&nbsp;Kiválasztott</span>
+                    </div>
+                </div>
+                
+                <form method="post" id="ticket-form">
+                    {% csrf_token %}
+                    <div id="hidden-seats"></div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">E-mail</label>
+                        <input type="email" name="guest_email" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Telefonszám</label>
+                        <input type="tel" name="guest_phone" class="form-control">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-lg w-100" id="buy-btn" disabled>
+                        <i class="bi bi-cart-check"></i> <span id="buy-btn-text">Válassz széke(ke)t</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="{% url 'core:cashier_dashboard' %}" class="btn btn-secondary mt-3">
+    <i class="bi bi-arrow-left"></i> Vissza
+</a>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var soldSeats = {{ sold_seats_json|safe }};
+    var soldSet = new Set(soldSeats.map(function(s) { return s[0] + '-' + s[1]; }));
+    var ticketPrice = {% localize off %}{{ screening.ticket_price }}{% endlocalize %};
+    var selectedSeats = [];
+
+    document.querySelectorAll('.seat').forEach(function(seat) {
+        var key = seat.dataset.row + '-' + seat.dataset.seat;
+        if (soldSet.has(key)) {
+            seat.classList.remove('available');
+            seat.classList.add('sold');
+            seat.title = 'Foglalt';
+        }
+    });
+
+    function updateUI() {
+        var hiddenDiv = document.getElementById('hidden-seats');
+        var selectedList = document.getElementById('selected-list');
+        var selectionCard = document.getElementById('selection-card');
+        var totalDisplay = document.getElementById('total-display');
+        var buyBtn = document.getElementById('buy-btn');
+        var buyBtnText = document.getElementById('buy-btn-text');
+
+        hiddenDiv.innerHTML = '';
+        selectedList.innerHTML = '';
+
+        selectedSeats.forEach(function(s) {
+            var rowInput = document.createElement('input');
+            rowInput.type = 'hidden';
+            rowInput.name = 'seat_rows';
+            rowInput.value = s.row;
+            hiddenDiv.appendChild(rowInput);
+
+            var seatInput = document.createElement('input');
+            seatInput.type = 'hidden';
+            seatInput.name = 'seat_numbers';
+            seatInput.value = s.seat;
+            hiddenDiv.appendChild(seatInput);
+
+            var li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center py-1';
+            li.innerHTML = '<span>Sor ' + s.row + ', Szék ' + s.seat + '</span><span class="text-success">' + ticketPrice + ' Ft</span>';
+            selectedList.appendChild(li);
+        });
+
+        var total = selectedSeats.length * ticketPrice;
+        totalDisplay.textContent = total.toLocaleString('hu-HU') + ' Ft';
+        selectionCard.style.display = selectedSeats.length > 0 ? 'block' : 'none';
+
+        if (selectedSeats.length === 0) {
+            buyBtn.disabled = true;
+            buyBtnText.textContent = 'Válassz széke(ke)t';
+        } else if (selectedSeats.length === 1) {
+            buyBtn.disabled = false;
+            buyBtnText.textContent = '1 jegy eladása – ' + total.toLocaleString('hu-HU') + ' Ft';
+        } else {
+            buyBtn.disabled = false;
+            buyBtnText.textContent = selectedSeats.length + ' jegy eladása – ' + total.toLocaleString('hu-HU') + ' Ft';
+        }
+    }
+
+    document.querySelectorAll('.seat.available').forEach(function(seat) {
+        seat.addEventListener('click', function() {
+            var row = parseInt(this.dataset.row);
+            var seatNum = parseInt(this.dataset.seat);
+
+            var idx = selectedSeats.findIndex(function(s) { return s.row === row && s.seat === seatNum; });
+
+            if (idx >= 0) {
+                selectedSeats.splice(idx, 1);
+                this.classList.remove('selected');
+                this.classList.add('available');
+            } else {
+                if (selectedSeats.length >= 10) {
+                    alert('Egyszerre legfeljebb 10 jegyet adhatsz el!');
+                    return;
+                }
+                selectedSeats.push({ row: row, seat: seatNum });
+                this.classList.remove('available');
+                this.classList.add('selected');
+            }
+
+            updateUI();
+        });
+    });
+});
+</script>
+{% endblock %}

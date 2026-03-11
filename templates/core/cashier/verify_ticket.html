@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Jegy ellenőrzése - Cinema{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-qr-code-scan"></i> Jegy ellenőrzése</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Jegy: {{ ticket.ticket_code }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Film:</strong> {{ ticket.screening.movie.title }}</p>
+                <p><strong>Időpont:</strong> {{ ticket.screening.start_time|date:"Y.m.d H:i" }}</p>
+                <p><strong>Terem:</strong> {{ ticket.screening.hall.name }}</p>
+                <p><strong>Hely:</strong> Sor {{ ticket.seat_row }}, Szék {{ ticket.seat_number }}</p>
+                
+                {% if ticket.user %}
+                    <p><strong>Felhasználó:</strong> {{ ticket.user.username }}</p>
+                {% else %}
+                    <p><strong>Vendég:</strong> {{ ticket.guest_email }}</p>
+                {% endif %}
+                
+                <hr>
+                
+                {% if ticket.is_cancelled %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-x-circle"></i> Ez a jegy TÖRÖLVE lett!
+                    </div>
+                {% elif ticket.is_verified %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-check-circle"></i> Ez a jegy már ellenőrizve volt.
+                    </div>
+                {% elif ticket.screening.is_past %}
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-clock"></i> A vetítés már lezajlott.
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> Érvényes jegy!
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-check-lg"></i> Jegy ellenőrzése / Beengedés
+                        </button>
+                    </form>
+                {% endif %}
+                
+                <a href="{% url 'core:cashier_dashboard' %}" class="btn btn-secondary mt-3">
+                    <i class="bi bi-arrow-left"></i> Vissza
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
