@@ -49,7 +49,7 @@
                 </a>
                 {% for day in day_choices %}
                 <a href="?date={{ day|date:'Y-m-d' }}" 
-                   class="btn btn-sm {% if selected_date == day|date:'Y-m-d' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    class="btn btn-sm {% if selected_date == day|date:'Y-m-d' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
                     {{ day|date:'m.d D' }}
                 </a>
                 {% endfor %}
