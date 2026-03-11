@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if movie %}Film szerkesztése{% else %}Új film{% endif %} - Cinema{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="bi bi-film"></i> 
+    {% if movie %}Film szerkesztése{% else %}Új film hozzáadása{% endif %}
+</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Cím *</label>
+                        <input type="text" name="title" class="form-control" 
+                               value="{{ movie.title|default:'' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Leírás *</label>
+                        <textarea name="description" class="form-control" rows="4" required>{{ movie.description|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Időtartam (perc) *</label>
+                            <input type="number" name="duration_minutes" class="form-control" 
+                                   value="{{ movie.duration_minutes|default:'' }}" min="1" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Műfaj *</label>
+                            <input type="text" name="genre" class="form-control" 
+                                   value="{{ movie.genre|default:'' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Rendező *</label>
+                            <input type="text" name="director" class="form-control" 
+                                   value="{{ movie.director|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Megjelenés dátuma *</label>
+                            <input type="date" name="release_date" class="form-control" 
+                                   value="{{ movie.release_date|date:'Y-m-d'|default:'' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Korhatár</label>
+                            <input type="text" name="age_rating" class="form-control" 
+                                   value="{{ movie.age_rating|default:'' }}" placeholder="pl. 12+">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Poszter URL</label>
+                            <input type="url" name="poster_url" class="form-control" 
+                                   value="{{ movie.poster_url|default:'' }}" placeholder="https://example.com/poster.jpg">
+                            {% if movie.poster_url %}
+                                <small class="text-muted">Jelenlegi: <a href="{{ movie.poster_url }}" target="_blank">megtekintés</a></small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if movie %}
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="is_active" class="form-check-input" 
+                               id="is_active" {% if movie.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">Aktív</label>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Mentés
+                        </button>
+                        <a href="{% url 'core:admin_movie_list' %}" class="btn btn-secondary">
+                            Mégse
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

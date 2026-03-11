@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Adminisztráció - Cinema{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-gear"></i> Adminisztráció</h1>
+
+<div class="row">
+    {% if user.can_manage_movies %}
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-film"></i> Filmek</h5>
+                <p class="display-4">{{ movies_count }}</p>
+                <p class="card-text">Aktív filmek száma</p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'core:admin_movie_list' %}" class="btn btn-light">Filmek kezelése</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user.can_manage_screenings %}
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calendar-event"></i> Vetítések</h5>
+                <p class="display-4">{{ screenings_count }}</p>
+                <p class="card-text">Közelgő vetítések</p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'core:admin_screening_list' %}" class="btn btn-light">Vetítések kezelése</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user.is_admin_user or user.is_superuser %}
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-ticket"></i> Mai jegyek</h5>
+                <p class="display-4">{{ tickets_today }}</p>
+                <p class="card-text">Ma eladott jegyek</p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'admin:core_ticket_changelist' %}" class="btn btn-light">Django Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-people"></i> Felhasználók</h5>
+                <p class="display-4">{{ users_count }}</p>
+                <p class="card-text">Regisztrált felhasználók</p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'core:admin_user_list' %}" class="btn btn-light">Felhasználók kezelése</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Gyors műveletek</h5>
+            </div>
+            <div class="card-body">
+                {% if user.can_manage_movies %}
+                <a href="{% url 'core:admin_movie_add' %}" class="btn btn-primary me-2">
+                    <i class="bi bi-plus-circle"></i> Új film
+                </a>
+                {% endif %}
+                {% if user.can_manage_screenings %}
+                <a href="{% url 'core:admin_screening_add' %}" class="btn btn-success me-2">
+                    <i class="bi bi-plus-circle"></i> Új vetítés
+                </a>
+                {% endif %}
+                {% if user.is_admin_user or user.is_superuser %}
+                <a href="{% url 'admin:index' %}" class="btn btn-secondary">
+                    <i class="bi bi-gear"></i> Django Admin
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if screening %}Vetítés szerkesztése{% else %}Új vetítés{% endif %} - Cinema{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="bi bi-calendar-event"></i> 
+    {% if screening %}Vetítés szerkesztése{% else %}Új vetítés létrehozása{% endif %}
+</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Film *</label>
+                        <select name="movie" class="form-select" required>
+                            <option value="">Válasszon...</option>
+                            {% for movie in movies %}
+                                <option value="{{ movie.pk }}" 
+                                    {% if screening.movie_id == movie.pk %}selected{% endif %}>
+                                    {{ movie.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Terem *</label>
+                        <select name="hall" class="form-select" required>
+                            <option value="">Válasszon...</option>
+                            {% for hall in halls %}
+                                <option value="{{ hall.pk }}"
+                                    {% if screening.hall_id == hall.pk %}selected{% endif %}>
+                                    {{ hall.name }} ({{ hall.capacity }} férőhely)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Kezdés időpontja *</label>
+                        <input type="datetime-local" name="start_time" class="form-control" 
+                               value="{{ screening.start_time|date:'Y-m-d\\TH:i'|default:'' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Jegyár (Ft) *</label>
+                        <input type="number" name="ticket_price" class="form-control" 
+                               value="{{ screening.ticket_price|default:'' }}" min="0" step="100" required>
+                    </div>
+                    
+                    {% if screening %}
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="is_active" class="form-check-input" 
+                               id="is_active" {% if screening.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">Aktív</label>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Mentés
+                        </button>
+                        <a href="{% url 'core:admin_screening_list' %}" class="btn btn-secondary">
+                            Mégse
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
