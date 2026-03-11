@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Főoldal - Cinema{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+            <h1 class="display-4"><i class="bi bi-camera-reels"></i> Üdvözöljük!</h1>
+            <p class="lead">Fedezze fel a legújabb filmeket és foglalja le jegyét online!</p>
+            <a href="{% url 'core:movie_list' %}" class="btn btn-light btn-lg">Filmek megtekintése</a>
+        </div>
+    </div>
+</div>
+
+<h2 class="mb-4">Kiemelt filmek</h2>
+<div class="row">
+    {% for movie in movies %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            {% if movie.poster_url %}
+                <img src="{{ movie.poster_url }}" class="card-img-top" alt="{{ movie.title }}">
+            {% else %}
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
+                    <i class="bi bi-film text-white" style="font-size: 4rem;"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ movie.title }}</h5>
+                <p class="card-text text-muted">{{ movie.genre }} | {{ movie.duration_minutes }} perc</p>
+                <a href="{% url 'core:movie_detail' movie.pk %}" class="btn btn-primary">Részletek</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="text-muted">Jelenleg nincsenek elérhető filmek.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<h2 class="mb-4 mt-5">Közelgő vetítések</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Film</th>
+                <th>Időpont</th>
+                <th>Terem</th>
+                <th>Ár</th>
+                <th>Szabad helyek</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for screening in screenings %}
+            <tr>
+                <td>{{ screening.movie.title }}</td>
+                <td>{{ screening.start_time|date:"Y.m.d H:i" }}</td>
+                <td>{{ screening.hall.name }}</td>
+                <td>{{ screening.ticket_price }} Ft</td>
+                <td>{{ screening.available_seats }} / {{ screening.hall.capacity }}</td>
+                <td>
+                    <a href="{% url 'core:buy_ticket' screening.pk %}" class="btn btn-sm btn-success">
+                        Jegyvásárlás
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-muted">Jelenleg nincsenek közelgő vetítések.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
