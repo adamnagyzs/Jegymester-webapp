@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}E-mail megerősítés - Cinema{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white text-center">
+                <h3 class="mb-0"><i class="bi bi-envelope-check"></i> E-mail megerősítés</h3>
+            </div>
+            <div class="card-body p-4 text-center">
+                {% if confirmation %}
+                    <p>Kérjük, erősítsd meg, hogy a(z) <strong>{{ confirmation.email_address.email }}</strong> 
+                    e-mail cím a te fiókodhoz tartozik.</p>
+                    
+                    <form method="POST" action="{% url 'account_confirm_email' confirmation.key %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Megerősítés
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        Érvénytelen megerősítő link. Lehetséges, hogy már lejárt vagy felhasználásra került.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center text-muted">
+                <a href="{% url 'core:home' %}">Vissza a főoldalra</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

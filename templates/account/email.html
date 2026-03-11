@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}E-mail címek kezelése - Cinema{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h3 class="mb-0"><i class="bi bi-envelope"></i> E-mail címek kezelése</h3>
+            </div>
+            <div class="card-body p-4">
+                {% if emailaddresses %}
+                    <p class="text-muted">Az alábbi e-mail címek vannak a fiókodhoz rendelve:</p>
+                    
+                    <form method="POST" action="{% url 'account_email' %}">
+                        {% csrf_token %}
+                        
+                        {% for emailaddress in emailaddresses %}
+                            <div class="form-check border rounded p-3 mb-2">
+                                <input type="radio" name="email" value="{{ emailaddress.email }}" 
+                                       id="email_radio_{{ forloop.counter }}" class="form-check-input"
+                                       {% if emailaddress.primary %}checked{% endif %}>
+                                <label class="form-check-label" for="email_radio_{{ forloop.counter }}">
+                                    {{ emailaddress.email }}
+                                    {% if emailaddress.verified %}
+                                        <span class="badge bg-success">Ellenőrzött</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Nem ellenőrzött</span>
+                                    {% endif %}
+                                    {% if emailaddress.primary %}
+                                        <span class="badge bg-primary">Elsődleges</span>
+                                    {% endif %}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" name="action_primary" class="btn btn-primary btn-sm">
+                                Elsődlegessé tétel
+                            </button>
+                            <button type="submit" name="action_send" class="btn btn-info btn-sm text-white">
+                                Újra ellenőrzés
+                            </button>
+                            <button type="submit" name="action_remove" class="btn btn-danger btn-sm">
+                                Eltávolítás
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p class="text-warning"><strong>Figyelem:</strong> Nincs e-mail cím rendelve a fiókodhoz.</p>
+                {% endif %}
+                
+                <hr>
+                
+                <h5>Új e-mail cím hozzáadása</h5>
+                <form method="POST" action="{% url 'account_email' %}">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" name="action_add" class="btn btn-success mt-2">
+                        <i class="bi bi-plus-circle"></i> E-mail hozzáadása
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
