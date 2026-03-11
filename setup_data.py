@@ -13,7 +13,7 @@ from datetime import timedelta
 from accounts.models import User
 from core.models import Movie, CinemaHall, Screening
 
-# Set admin password and make it admin role
+
 print("Setting up admin user...")
 admin, created = User.objects.get_or_create(
     username='admin',
@@ -31,7 +31,7 @@ admin.is_superuser = True
 admin.save()
 print(f"✓ Admin user configured (username: admin, password: admin123)")
 
-# Create cashier user
+
 print("\nCreating cashier user...")
 cashier, created = User.objects.get_or_create(
     username='penztar',
@@ -47,7 +47,7 @@ if created:
 else:
     print(f"✓ Cashier user already exists")
 
-# Create test customer
+
 print("\nCreating test customer...")
 customer, created = User.objects.get_or_create(
     username='felhasznalo',
@@ -64,7 +64,7 @@ if created:
 else:
     print(f"✓ Customer user already exists")
 
-# Create Cinema Halls
+
 print("\nCreating cinema halls...")
 halls_data = [
     {'name': 'Nagyterem', 'rows': 10, 'seats_per_row': 15},
@@ -84,7 +84,7 @@ for hall_data in halls_data:
     status = "created" if created else "updated"
     print(f"✓ {hall.name} ({hall.rows}×{hall.seats_per_row} = {hall.capacity} seats) - {status}")
 
-# Create Movies
+
 print("\nCreating movies...")
 movies_data = [
     {
@@ -157,9 +157,9 @@ for movie_data in movies_data:
     status = "created" if created else "exists"
     print(f"✓ {movie.title} ({movie.duration_minutes} min) - {status}")
 
-# Create Screenings — spread across the whole year, varied start times
+
 print("\nCreating screenings...")
-# Remove all past screenings (that have no sold tickets)
+
 from django.db.models import Count
 past = Screening.objects.filter(start_time__lt=timezone.now())
 past_empty = past.annotate(ticket_count=Count('tickets')).filter(ticket_count=0)
@@ -171,7 +171,7 @@ now = timezone.now()
 halls = list(CinemaHall.objects.all())
 movies = list(Movie.objects.all())
 
-# Varied time slots — different start minutes so screenings don't all begin on the hour
+
 time_slots = [
     (10, 0),   # 10:00
     (11, 30),  # 11:30
@@ -184,7 +184,7 @@ time_slots = [
 ]
 prices = [1500, 1800, 2000, 2200, 2500, 2800]
 
-# Collect existing screening keys to avoid duplicates
+
 existing = set(
     Screening.objects.values_list('movie_id', 'hall_id', 'start_time')
 )
@@ -197,13 +197,13 @@ for day_offset in range(total_days):
         hour=0, minute=0, second=0, microsecond=0
     )
 
-    # Number of screenings varies by day of week
+
     weekday = day_start.weekday()
-    if weekday in (4, 5, 6):  # Fri/Sat/Sun — more screenings
+    if weekday in (4, 5, 6):  
         slots_today = 5
-    elif weekday in (0, 3):   # Mon/Thu
+    elif weekday in (0, 3):   
         slots_today = 4
-    else:                     # Tue/Wed
+    else:                     
         slots_today = 3
 
     slot_offset = day_offset % len(time_slots)
@@ -231,7 +231,7 @@ for day_offset in range(total_days):
             is_active=True,
         ))
 
-# Bulk create in batches — much faster than individual inserts
+
 batch_size = 200
 for i in range(0, len(new_screenings), batch_size):
     Screening.objects.bulk_create(new_screenings[i:i + batch_size], ignore_conflicts=True)

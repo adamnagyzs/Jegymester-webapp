@@ -12,7 +12,7 @@ django.setup()
 from django.core.files.base import ContentFile
 from core.models import Movie
 
-# Movie poster URLs (using placeholder or free movie poster services)
+
 POSTER_URLS = {
     'A Keresztapa': 'https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_SX300.jpg',
     'Csillagok Háborúja: Egy Új Remény': 'https://m.media-amazon.com/images/M/MV5BOTA5NjhiOTAtZWM0ZC00MWNhLThiMzEtZDFkOTk2OTU1ZDJkXkEyXkFqcGdeQXVyMTA4NDI1NTQx._V1_SX300.jpg',
@@ -22,7 +22,7 @@ POSTER_URLS = {
     'Dűne': 'https://m.media-amazon.com/images/M/MV5BMDQ0NjgyN2YtNWViNS00YjA3LTkxNDktYzFkZTExZGMxZDkxXkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_SX300.jpg',
 }
 
-# Create media/posters directory
+
 posters_dir = Path('media/posters')
 posters_dir.mkdir(parents=True, exist_ok=True)
 
@@ -39,10 +39,10 @@ for movie in Movie.objects.all():
             response = requests.get(url, timeout=10)
             response.raise_for_status()
             
-            # Create filename
+
             filename = f"{movie.title.replace(' ', '_').replace(':', '').lower()}.jpg"
             
-            # Save to model
+
             movie.poster.save(filename, ContentFile(response.content), save=True)
             
             print(f"✓ Saved as {filename}")
