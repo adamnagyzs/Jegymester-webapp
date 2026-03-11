@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Vetítések - Cinema{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-calendar-event"></i> Közelgő vetítések</h1>
+
+<div class="card mb-4">
+    <div class="card-header p-0">
+        <button class="btn btn-link text-decoration-none w-100 text-start p-3 d-flex justify-content-between align-items-center" 
+                type="button" data-bs-toggle="collapse" data-bs-target="#dateFilter" 
+                aria-expanded="{% if selected_date %}true{% else %}false{% endif %}" aria-controls="dateFilter">
+            <span>
+                <i class="bi bi-funnel"></i> Nap kiválasztása
+                {% if selected_date %}<span class="badge bg-primary ms-2">{{ selected_date }}</span>{% endif %}
+            </span>
+            <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
+    <div id="dateFilter" class="collapse {% if selected_date %}show{% endif %}">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <a href="{% url 'core:screening_list' %}" class="btn btn-sm {% if not selected_date %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Összes
+                </a>
+                {% for day in day_choices %}
+                <a href="?date={{ day|date:'Y-m-d' }}" 
+                   class="btn btn-sm {% if selected_date == day|date:'Y-m-d' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    {{ day|date:'m.d D' }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Film</th>
+                <th>Időpont</th>
+                <th>Terem</th>
+                <th>Időtartam</th>
+                <th>Ár</th>
+                <th>Szabad helyek</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for screening in screenings %}
+            <tr>
+                <td>
+                    <a href="{% url 'core:movie_detail' screening.movie.pk %}">
+                        {{ screening.movie.title }}
+                    </a>
+                </td>
+                <td>{{ screening.start_time|date:"Y.m.d H:i" }}</td>
+                <td>{{ screening.hall.name }}</td>
+                <td>{{ screening.movie.duration_minutes }} perc</td>
+                <td>{{ screening.ticket_price }} Ft</td>
+                <td>
+                    {% if screening.is_sold_out %}
+                        <span class="badge bg-danger">Teltház</span>
+                    {% else %}
+                        <span class="badge bg-success">{{ screening.available_seats }}</span> / {{ screening.hall.capacity }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not screening.is_sold_out %}
+                        <a href="{% url 'core:buy_ticket' screening.pk %}" class="btn btn-sm btn-success">
+                            <i class="bi bi-ticket"></i> Jegyvásárlás
+                        </a>
+                    {% else %}
+                        <button class="btn btn-sm btn-secondary" disabled>Teltház</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+                    <p class="mt-2">Jelenleg nincsenek közelgő vetítések.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if screenings.has_other_pages %}
+<nav aria-label="Lapozás">
+    <ul class="pagination justify-content-center mt-4">
+        {% if screenings.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ screenings.previous_page_number }}{% if selected_date %}&date={{ selected_date }}{% endif %}">&laquo; Előző</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">&laquo; Előző</span></li>
+        {% endif %}
+
+        {% for num in screenings.paginator.page_range %}
+            {% if screenings.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > screenings.number|add:"-3" and num < screenings.number|add:"3" %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if selected_date %}&date={{ selected_date }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if screenings.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ screenings.next_page_number }}{% if selected_date %}&date={{ selected_date }}{% endif %}">Következő &raquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Következő &raquo;</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
